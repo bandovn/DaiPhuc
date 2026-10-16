@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0F6E56">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PASDĐ Đại Phúc">
+<meta name="description" content="WebGIS phương án sử dụng đất do Công ty Lâm nghiệp Thái Nguyên trả ra trên địa bàn xã Đại Phúc, tỉnh Thái Nguyên">
+<title>Phương án sử dụng đất — xã Đại Phúc</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logo">ĐP</div>
+    <div class="title-wrap">
+      <div class="title">Phương án sử dụng đất do Công ty Lâm nghiệp Thái Nguyên trả ra</div>
+      <div class="subtitle">UBND xã Đại Phúc • Cơ quan tổ chức lập: Phòng Xây dựng, Nông nghiệp và Môi trường</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="nav-btn active" data-view="map"><span class="nav-icon">🗺️</span><span class="nav-text">Bản đồ</span></button>
+    <button class="nav-btn" data-view="table"><span class="nav-icon">🔍</span><span class="nav-text">Tra cứu</span></button>
+    <button class="nav-btn" data-view="dashboard"><span class="nav-icon">📊</span><span class="nav-text">Thống kê</span></button>
+    <button class="nav-btn" data-view="report"><span class="nav-icon">💬</span><span class="nav-text">Ý kiến</span></button>
+    <button class="nav-btn" data-view="help"><span class="nav-icon">📘</span><span class="nav-text">Hướng dẫn</span></button>
+    <button class="nav-btn" data-view="contact"><span class="nav-icon">📞</span><span class="nav-text">Liên hệ</span></button>
+  </header>
+
+  <main class="main">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Tờ/thửa (VD 93/190), tên, thôn...">
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Tô màu theo</div>
+        <div class="color-mode">
+          <button class="active" data-mode="nhom">Nhóm PA</button>
+          <button data-mode="loai">Loại đất</button>
+          <button data-mode="chu">Chủ thể</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Lớp dữ liệu</div>
+        <label class="filter-row">
+          <input type="checkbox" id="layer-dc" checked>
+          <span class="swatch" style="background:#fff;border:1px solid #333"></span>
+          <span>Thửa trên BĐĐC chính quy</span>
+          <span class="count" id="count-dc">—</span>
+        </label>
+        <label class="filter-row">
+          <input type="checkbox" id="layer-ln" checked>
+          <span class="swatch" style="background:rgba(255,23,68,.15);border:2.5px solid #FF1744"></span>
+          <span>Thửa không có trên BĐĐC <small>(bản đồ lâm nghiệp)</small></span>
+          <span class="count" id="count-ln">—</span>
+        </label>
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Nhóm phương án</div>
+        <div id="filter-nhom"></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Khu vực (xã cũ)</div>
+        <div id="filter-xa"></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Chủ thể đang quản lý, sử dụng</div>
+        <div id="filter-chu"></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="section-title">Kiểm tra</div>
+        <label class="filter-row">
+          <input type="checkbox" id="only-b12">
+          <span class="swatch" style="background:transparent;border:1.5px dashed #FF6D00"></span>
+          <span>Chỉ thửa sai khác lớn QĐ – BĐĐC</span>
+          <span class="count" id="count-b12">—</span>
+        </label>
+        <label class="filter-row">
+          <input type="checkbox" id="only-qhc">
+          <span class="swatch" style="background:#fff;border:0.5px solid #999"></span>
+          <span>Chỉ thửa trong ranh QH chung</span>
+          <span class="count" id="count-qhc">—</span>
+        </label>
+        <label class="filter-row">
+          <input type="checkbox" id="only-yk">
+          <span class="swatch" style="background:#fff;border:0.5px solid #999"></span>
+          <span>Chỉ thửa đã ghi ý kiến</span>
+          <span class="count" id="count-yk">—</span>
+        </label>
+      </div>
+
+      <div class="thanha-footer" title="Đơn vị xây dựng: Công ty Cổ phần Công nghệ Tài nguyên - Môi trường Hà Nội">
+        <div class="th-text">
+          <div class="th-line1">Đơn vị xây dựng</div>
+          <div class="th-line2">Công ty Cổ phần Công nghệ Tài nguyên - Môi trường Hà Nội</div>
+          <div class="th-line3">📞 035.293 7823</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="map-area" id="view-map">
+      <div id="map"></div>
+      <div class="loading" id="map-loading">Đang tải dữ liệu thửa đất...</div>
+
+      <div class="map-overlay-tr">
+        <div><strong id="visible-count">—</strong> thửa hiển thị</div>
+        <div style="color:var(--text-secondary);margin-top:2px">trên tổng <strong id="total-count">—</strong> • <span id="visible-ha">—</span> ha</div>
+      </div>
+
+      <div class="map-overlay-bl" id="map-legend"></div>
+      <div class="coord-box" id="coord-box">Di chuột trên bản đồ để xem tọa độ</div>
+    </div>
+
+    <div class="view-table hidden" id="view-table">
+      <div class="table-controls">
+        <input type="text" id="table-search" placeholder="Tên, tờ/thửa, thôn..." style="flex:1;min-width:160px">
+        <select id="table-xa"><option value="">Tất cả khu vực</option></select>
+        <select id="table-nhom"><option value="">Tất cả nhóm PA</option></select>
+        <select id="table-lop">
+          <option value="">Tất cả thửa</option>
+          <option value="ln">Thửa không có trên BĐĐC</option>
+          <option value="b12">Thửa sai khác lớn QĐ – BĐĐC</option>
+          <option value="yk">Thửa đã ghi ý kiến</option>
+        </select>
+        <button class="btn" onclick="exportFilteredCsv()">⬇ Xuất CSV</button>
+      </div>
+      <div class="thua-table" id="thua-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="xa_cu">Khu vực</th>
+              <th data-sort="tbd">Tờ</th>
+              <th data-sort="thua">Thửa</th>
+              <th data-sort="ten">Người/đơn vị đang SD</th>
+              <th data-sort="thon">Thôn, xóm</th>
+              <th data-sort="loai">Loại đất</th>
+              <th data-sort="dt_qd" class="num">DT theo QĐ (m²)</th>
+              <th data-sort="dt_bd" class="num">DT BĐĐC (m²)</th>
+              <th data-sort="nhom">Nhóm PA</th>
+              <th data-sort="danh_gia">Đối chiếu</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <div class="view-dashboard hidden" id="view-dashboard">
+      <h1 style="font-size:18px;font-weight:500;margin-bottom:16px">Thống kê phương án sử dụng đất</h1>
+      <div class="dashboard-grid" id="dash-cards"></div>
+
+      <div class="dashboard-section">
+        <h2>Tổng hợp theo nhóm phương án và khu vực (ha)</h2>
+        <table class="simple" id="table-by-nhom"><thead><tr><th>Nhóm phương án</th><th class="num">Số thửa</th><th class="num">Tổng DT</th><th class="num">Phúc Tân</th><th class="num">Phúc Trìu</th><th class="num">Cơ cấu</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Theo loại đất hiện trạng (TT 08/2024) (ha)</h2>
+        <table class="simple" id="table-by-loai"><thead><tr><th>Mã</th><th>Loại đất</th><th class="num">Số thửa</th><th class="num">DT</th><th class="num">Cơ cấu</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Theo chủ thể đang quản lý, sử dụng (ha)</h2>
+        <table class="simple" id="table-by-chu"><thead><tr><th>Chủ thể</th><th>Mã TT 08</th><th class="num">Số thửa</th><th class="num">DT</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Theo tờ bản đồ (ha)</h2>
+        <table class="simple" id="table-by-to"><thead><tr><th>Khu vực</th><th>Tờ</th><th class="num">Số thửa</th><th class="num">DT</th><th class="num">Nhóm 1</th><th class="num">Nhóm 2</th><th class="num">Nhóm 3</th><th class="num">Nhóm 4</th><th class="num">Nhóm 5</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Theo thôn, xóm (ha)</h2>
+        <table class="simple" id="table-by-thon"><thead><tr><th>Thôn, xóm</th><th>Khu vực</th><th class="num">Số thửa</th><th class="num">DT</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Thửa không có trên BĐĐC chính quy — chồng lấn với thửa BĐĐC</h2>
+        <table class="simple" id="table-ln"><thead><tr><th>Thửa (QĐ)</th><th>Loại</th><th class="num">DT theo QĐ</th><th class="num">DT ranh BĐ lâm nghiệp</th><th>Chồng lên thửa BĐĐC</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="dashboard-section">
+        <h2>Thửa sai khác lớn giữa QĐ thu hồi và BĐĐC (Biểu 12)</h2>
+        <table class="simple" id="table-b12"><thead><tr><th>Thửa</th><th>Khu vực</th><th class="num">DT QĐ</th><th class="num">DT BĐĐC</th><th class="num">Chênh</th><th>Loại QĐ / BĐĐC</th><th>Đánh giá</th></tr></thead><tbody></tbody></table>
+      </div>
+      <p style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-style:italic">
+        <strong>Lưu ý:</strong> Diện tích lập phương án lấy theo phụ lục quyết định thu hồi; diện tích BĐĐC để đối chiếu. Số liệu theo bộ biểu phương án bản 15/10/2026.
+      </p>
+    </div>
+
+    <div class="view-report hidden" id="view-report">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h1 style="font-size:18px;font-weight:500;margin:0">💬 Tổng hợp ý kiến khi công khai phương án</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="btn" style="margin:0">⬆ Nhập JSON<input type="file" accept=".json,application/json" style="display:none" onchange="importReportJson(this)"></label>
+          <button class="btn" onclick="exportReportJson()">⬇ Xuất JSON</button>
+          <button class="btn" onclick="exportAllExcel()">📑 Danh sách 480 thửa (.xlsx)</button>
+          <button class="btn btn-primary" onclick="exportReportExcel()">📊 Biểu ý kiến (.xlsx)</button>
+        </div>
+      </div>
+      <div id="report-summary" style="background:var(--bg-panel);border:0.5px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7"></div>
+      <div class="thua-table" style="background:var(--bg-panel);border:0.5px solid var(--border);border-radius:8px;overflow:auto;max-height:calc(100vh - 260px)">
+        <table>
+          <thead>
+            <tr>
+              <th>Khu vực</th><th>Tờ</th><th>Thửa</th><th>Người SD</th><th>Nhóm PA</th>
+              <th>Ý kiến</th><th>Nội dung</th><th>Đề xuất nhóm</th><th>Ranh thửa</th>
+              <th>Người ghi</th><th>Ngày</th><th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="report-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="view-help hidden" id="view-help">
+      <h1 style="font-size:18px;font-weight:500;margin-bottom:16px">Hướng dẫn sử dụng</h1>
+
+      <div class="help-section">
+        <h2>1. Phạm vi</h2>
+        <p>Hệ thống thể hiện <strong>480 thửa đất (1.114,44 ha)</strong> do Công ty Lâm nghiệp Thái Nguyên trả ra, thu hồi bàn giao về địa phương theo:</p>
+        <ul>
+          <li>Quyết định số 2199/QĐ-UBND ngày 20/9/2024 — khu vực xã Phúc Tân cũ: 305 thửa;</li>
+          <li>Quyết định số 3073/QĐ-UBND ngày 05/12/2024 — phần xã Phúc Trìu cũ: 175 thửa.</li>
+        </ul>
+        <p>Nay thuộc xã Đại Phúc, tỉnh Thái Nguyên. Phần diện tích trên địa bàn xã Tân Cương không thuộc phạm vi phương án. Cơ quan tổ chức lập: <strong>Phòng Xây dựng, Nông nghiệp và Môi trường xã Đại Phúc</strong>.</p>
+      </div>
+
+      <div class="help-section">
+        <h2>2. Hai lớp dữ liệu</h2>
+        <ul>
+          <li><strong>Thửa trên bản đồ địa chính chính quy (472 thửa):</strong> ranh thửa lấy từ BĐĐC xã Phúc Tân, Phúc Trìu cũ.</li>
+          <li><strong style="color:#D50000">Thửa không có trên BĐĐC (8 thửa):</strong> có trong phụ lục quyết định thu hồi nhưng không có trên BĐĐC chính quy; ranh thửa tạm lấy từ bản đồ lâm nghiệp do Công ty Lâm nghiệp Thái Nguyên bàn giao. Các thửa này <strong>chồng lấn</strong> lên thửa BĐĐC nên thể hiện thành lớp riêng, viền đỏ đậm. Ranh giới, diện tích sẽ được cập nhật sau khi công khai, lấy ý kiến và đo đạc xác minh.</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h2>3. Năm nhóm phương án</h2>
+        <ul id="help-nhom"></ul>
+      </div>
+
+      <div class="help-section">
+        <h2>4. Sử dụng hệ thống</h2>
+        <ul>
+          <li><strong>Bản đồ:</strong> click vào thửa để xem thông tin theo QĐ thu hồi, BĐĐC, hiện trạng, quy hoạch và phương án. Phóng to từ mức 17 hiện nhãn <em>mục đích sử dụng - số tờ/số thửa</em>.</li>
+          <li><strong>Tìm kiếm:</strong> gõ <code>tờ/thửa</code> (VD <code>93/190</code>), tên người sử dụng hoặc tên thôn; Enter để nhảy tới thửa.</li>
+          <li><strong>Ghi ý kiến:</strong> khi công khai phương án, mở thửa → <em>Ghi ý kiến</em> để ghi nhận ý kiến người sử dụng, đề xuất điều chỉnh nhóm, xác nhận ranh thửa. Dữ liệu lưu trong trình duyệt; xuất JSON/Excel ở tab <em>Ý kiến</em> để tổng hợp.</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h2>5. Hệ tọa độ</h2>
+        <p>Dữ liệu gốc hệ VN-2000, kinh tuyến trục 106°30', múi chiếu 3° (tỉnh Thái Nguyên); đã chuyển sang WGS-84 để hiển thị trên nền ảnh vệ tinh. Ô góc dưới phải bản đồ hiển thị tọa độ WGS-84 và VN-2000 tại vị trí con trỏ.</p>
+      </div>
+
+      <div class="help-section">
+        <h2>6. Căn cứ pháp lý</h2>
+        <ul>
+          <li>Luật Đất đai năm 2024 — Điều 181; Luật Lâm nghiệp năm 2017</li>
+          <li>Nghị định số 102/2024/NĐ-CP; Nghị định số 103/2024/NĐ-CP</li>
+          <li>Thông tư số 08/2024/TT-BTNMT (mã loại đất)</li>
+          <li>Quyết định số 2199/QĐ-UBND ngày 20/9/2024; Quyết định số 3073/QĐ-UBND ngày 05/12/2024</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h2>7. Lưu ý</h2>
+        <p>Phiên bản chạy trên GitHub Pages, không có máy chủ. Ý kiến ghi nhận lưu cục bộ trong trình duyệt của từng máy; cần xuất JSON/Excel để gộp về cơ quan tổ chức lập. Hệ thống phục vụ công khai, lấy ý kiến; không thay thế hồ sơ phương án được phê duyệt.</p>
+      </div>
+
+      <div class="help-cta">
+        <span>Góp ý về số liệu, ranh giới thửa đất?</span>
+        <button class="btn btn-primary" onclick="goToContact()">Liên hệ →</button>
+      </div>
+    </div>
+
+    <aside class="rightbar" id="rightbar">
+      <button class="bottom-sheet-close" onclick="closeRightbarMobile()">✕</button>
+      <div id="thua-detail">
+        <div class="thua-detail-empty">👆 Click vào một thửa trên bản đồ<br>để xem chi tiết</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div class="mobile-backdrop" id="mobile-backdrop" onclick="closeMobilePanels()"></div>
+<button class="mobile-fab show" id="fab-filter" onclick="openMobileSidebar()" title="Bộ lọc">☰</button>
+
+<div class="edit-panel" id="edit-panel">
+  <div class="edit-panel-header">
+    <div class="title">💬 Ghi ý kiến <small id="edit-thua-id"></small></div>
+    <button class="close" onclick="closeEditPanel()">✕</button>
+  </div>
+  <div class="edit-panel-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ý kiến người sử dụng</label>
+        <select id="edit-y-kien">
+          <option value="">— Chưa có —</option>
+          <option>Đồng ý phương án</option>
+          <option>Không đồng ý</option>
+          <option>Đồng ý một phần</option>
+          <option>Không liên hệ được</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Đề xuất điều chỉnh nhóm PA</label>
+        <select id="edit-de-xuat"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Xác nhận ranh thửa</label>
+      <select id="edit-ranh">
+        <option value="">— Chưa xác nhận —</option>
+        <option>Đúng ranh BĐĐC</option>
+        <option>Đúng ranh bản đồ lâm nghiệp</option>
+        <option>Sai ranh – cần đo đạc lại</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Nội dung ý kiến</label>
+      <textarea id="edit-noi-dung" rows="3" style="resize:vertical" placeholder="Ý kiến người sử dụng, thôn xóm, cán bộ địa chính..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>SĐT liên hệ</label>
+        <input type="text" id="edit-sdt" placeholder="VD: 0912 345 678">
+      </div>
+      <div class="form-group">
+        <label>📷 Ảnh, giấy tờ</label>
+        <input type="file" accept="image/*,application/pdf" multiple onchange="onPickImages(this,'anh')" style="font-size:11px">
+        <div id="preview-anh" class="img-preview-grid"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Người ghi</label>
+        <input type="text" id="edit-nguoi" placeholder="Họ tên cán bộ">
+      </div>
+      <div class="form-group">
+        <label>Ngày</label>
+        <input type="date" id="edit-ngay">
+      </div>
+    </div>
+  </div>
+  <div class="edit-panel-footer">
+    <button class="btn" onclick="closeEditPanel()">Hủy</button>
+    <button class="btn btn-primary" onclick="saveEdit()">💾 Lưu</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
